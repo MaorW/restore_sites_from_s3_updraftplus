@@ -1,0 +1,67 @@
+version: '3'
+
+################  Services #############################
+services:
+  ######## Database ###########
+  db:
+    build:
+      context: ./db_docker
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./logs/mysql:/var/log/mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${wp_db_root_pass}
+      MYSQL_DATABASE: ${wp_db_name}
+      MYSQL_USER: ${wp_db_root_user}
+      MYSQL_PASSWORD: ${wp_db_root_pass}
+    networks:
+      - wpsite
+######## phpmyadmin ###########
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_USER: ${wp_db_root_user}
+      PMA_PASSWORD: ${wp_db_root_pass}
+    ports:
+      - '8080:80'
+    networks:
+      - wpsite
+######## Wordpress ###########
+  wordpress:
+    depends_on:
+      - db
+    build:
+      context: ./wp_docker
+    ports:
+      - '8000:80'
+    restart: always
+    volumes: 
+      - ./wp_files:/var/www/html
+      - ./logs/wordpress:/var/log/apache2/
+    environment:
+      # WP configuration
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${wp_db_root_user}
+      WORDPRESS_DB_PASSWORD: ${wp_db_root_pass}
+      WORDPRESS_DB_NAME: ${wp_db_name}
+      # Script configuration
+      AWS_ACCESS_KEY_ID: ${aws_access_key_id}
+      AWS_SECRET_ACCESS_KEY: ${aws_secret_access_key}
+      AWS_DEFAULT_REGION: ${aws_region}
+      UPDRAFTPLUS_ACCOUT_USER: ${updraftplus_account_user}
+      UPDRAFTPLUS_ACCOUT_PASS: ${updraftplus_account_pass}
+    networks:
+      - wpsite
+################  Networks #############################
+networks:
+  wpsite:
+################  Volumes #############################
+volumes:
+  db_data:
