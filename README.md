@@ -21,7 +21,7 @@
 
 * Copy the '.env.example' file to an '.env' file and fill the parameters as required. 
  
->*Make sure you have updraft's credentials on LastPass
+* Make sure you have updraft's credentials on LastPass
 
 * Leave your 8080, and 8000 ports open.
 ```
